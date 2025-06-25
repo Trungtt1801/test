@@ -1,0 +1,106 @@
+/* register.module.css */
+
+.containerDefault {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70%;
+  margin: 0 auto;
+}
+
+:global(article) {
+  justify-content: left;
+  align-items: center;
+  height: 600px;
+  width: 50%;
+  border-right: 1px solid #c5c3c3;
+}
+
+:global(aside) {
+  display: flex;
+  font-size: 12px;
+  justify-content: center;
+  align-items: center;
+  height: 600px;
+  width: 50%;
+}
+
+:global(h1) {
+  margin-top: 210px;
+  font-size: 40px;
+}
+
+:global(h2) {
+  /* trống nhưng không lỗi */
+}
+
+.formContainer {
+  width: 380px;
+  margin: 0 auto;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.formGroup input,
+.formGroup select {
+  width: 100%;
+  padding: 14px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+.formGroup input[type='radio'] {
+  width: auto;
+  height: 10px;
+}
+
+.formGroup label {
+  font-size: 12px;
+}
+
+.note {
+  font-size: 12px;
+  color: #666;
+  margin-top: 10px;
+}
+
+.note a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.note a:hover {
+  text-decoration: underline;
+}
+
+.submitBtn {
+  display: block;
+  width: auto;
+  background-color: #ff0000;
+  color: #fff;
+  padding: 14px;
+  text-align: center;
+  border: none;
+  border-radius: 1px;
+  cursor: pointer;
+}
+
+.submitBtn:hover {
+  background-color: #020202;
+}
+
+.backLink {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  text-decoration: none;
+  color: #333;
+}
