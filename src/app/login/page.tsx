@@ -12,6 +12,8 @@ export default function LoginPage() {
     password: "",
   });
 
+  const [error, setError] = useState(""); 
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -22,7 +24,26 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login(formData);
+    setError(""); // reset lỗi cũ
+
+    const { email, password } = formData;
+
+    if (!email || !password) {
+      setError("Vui lòng nhập đầy đủ email và mật khẩu.");
+      return;
+    }
+
+    // Kiểm tra định dạng email cơ bản
+    const emailRegex = /\S+@\S+\.\S+/;
+    if (!emailRegex.test(email)) {
+      setError("Email không hợp lệ.");
+      return;
+    }
+
+    // Gọi login từ context
+    login(formData).catch(() => {
+      setError("Sai email hoặc mật khẩu.");
+    });
   };
 
   return (
@@ -36,6 +57,8 @@ export default function LoginPage() {
         <aside>
           <div className={styles.formContainer}>
             <form onSubmit={handleSubmit}>
+              {error && <div className={styles.errorMessage}>{error}</div>}
+
               <div className={styles.formGroup}>
                 <input
                   type="email"
@@ -83,19 +106,26 @@ export default function LoginPage() {
               <button type="submit" className={styles.submitBtn}>
                 ĐĂNG NHẬP
               </button>
+
               <div className={styles.socialLoginContainer}>
                 <button
                   type="button"
                   className={`${styles.socialButton} ${styles.googleButton}`}
                 >
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png" alt="Google" />
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png"
+                    alt="Google"
+                  />
                   Đăng nhập bằng Google
                 </button>
                 <button
                   type="button"
                   className={`${styles.socialButton} ${styles.facebookButton}`}
                 >
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook" />
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
+                    alt="Facebook"
+                  />
                   Đăng nhập bằng Facebook
                 </button>
               </div>
