@@ -16,6 +16,8 @@ export default function RegisterPage() {
     password: '',
   })
 
+  const [error, setError] = useState('')
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target
     setFormData(prev => ({
@@ -26,7 +28,40 @@ export default function RegisterPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    register(formData)
+    setError('')
+
+    const { name, phone, gender, dob, email, password } = formData
+
+    // Validate các trường bắt buộc
+    if (!name || !phone || !gender || !dob || !email || !password) {
+      setError('Vui lòng điền đầy đủ tất cả các trường.')
+      return
+    }
+
+    // Validate email
+    const emailRegex = /\S+@\S+\.\S+/
+    if (!emailRegex.test(email)) {
+      setError('Email không hợp lệ.')
+      return
+    }
+
+    // Validate số điện thoại
+    const phoneRegex = /^[0-9]{9,15}$/
+    if (!phoneRegex.test(phone)) {
+      setError('Số điện thoại không hợp lệ (từ 9 đến 15 chữ số).')
+      return
+    }
+
+    // Validate mật khẩu tối thiểu
+    if (password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự.')
+      return
+    }
+
+    // Gọi API đăng ký
+    register(formData).catch(() => {
+      setError('Đăng ký thất bại. Vui lòng thử lại.')
+    })
   }
 
   return (
@@ -39,6 +74,9 @@ export default function RegisterPage() {
       <aside>
         <div className={styles.formContainer}>
           <form onSubmit={handleSubmit}>
+            {/* Hiển thị lỗi nếu có */}
+            {error && <div className={styles.errorMessage}>{error}</div>}
+
             <div className={styles.formGroup}>
               <input
                 type="text"
