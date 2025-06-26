@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 interface User {
   _id: string;
@@ -30,6 +31,7 @@ interface AuthContextType {
   currentUser: User | null;
   register: (data: RegisterData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
+  loginWithGoogle: (token: string) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
 }
@@ -40,7 +42,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const router = useRouter();
 
-  // Load user từ localStorage khi reload trang
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
@@ -90,9 +91,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const loginWithGoogle = async (token: string) => {
+    try {
+      const res = await fetch("http://localhost:3000/user/login-google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      const result = await res.json();
+      if (result.token) {
+        localStorage.setItem("token", result.token);
+      }
+      if (!res.ok) throw new Error(result.error || "Đăng nhập Google thất bại");
+
+      setCurrentUser(result.user);
+      localStorage.setItem("user", JSON.stringify(result.user));
+
+      alert("Đăng nhập Google thành công!");
+      router.push("/");
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     router.push("/login");
   };
 
@@ -112,11 +138,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ currentUser, register, login, logout, forgotPassword }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <GoogleOAuthProvider clientId="258579315963-1rbveiegq1kn5pbhp0e8lkqbptfkne2k.apps.googleusercontent.com">
+      <AuthContext.Provider
+        value={{
+          currentUser,
+          register,
+          login,
+          loginWithGoogle,
+          logout,
+          forgotPassword,
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    </GoogleOAuthProvider>
   );
 };
 

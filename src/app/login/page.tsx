@@ -3,9 +3,10 @@
 import React, { useState } from "react";
 import styles from "./login.module.css";
 import { useAuth } from "../context/authContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth(); 
 
   const [formData, setFormData] = useState({
     email: "",
@@ -24,7 +25,7 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(""); // reset lỗi cũ
+    setError("");
 
     const { email, password } = formData;
 
@@ -33,17 +34,27 @@ export default function LoginPage() {
       return;
     }
 
-    // Kiểm tra định dạng email cơ bản
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       setError("Email không hợp lệ.");
       return;
     }
 
-    // Gọi login từ context
     login(formData).catch(() => {
       setError("Sai email hoặc mật khẩu.");
     });
+  };
+
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    try {
+      const token = credentialResponse.credential;
+      if (!token) return;
+
+      await loginWithGoogle(token); 
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError("Đăng nhập Google thất bại.");
+    }
   };
 
   return (
@@ -57,7 +68,6 @@ export default function LoginPage() {
         <aside>
           <div className={styles.formContainer}>
             <form onSubmit={handleSubmit}>
-              {/* ⚠️ Hiển thị lỗi nếu có */}
               {error && <div className={styles.errorMessage}>{error}</div>}
 
               <div className={styles.formGroup}>
@@ -83,7 +93,6 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Ghi chú bảo mật */}
               <p className={styles.note}>
                 This site is protected by reCAPTCHA and the Google{" "}
                 <a
@@ -109,16 +118,15 @@ export default function LoginPage() {
               </button>
 
               <div className={styles.socialLoginContainer}>
-                <button
-                  type="button"
-                  className={`${styles.socialButton} ${styles.googleButton}`}
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png"
-                    alt="Google"
+                <div className={styles.googleButton}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleLogin}
+                    onError={() => {
+                      setError("Đăng nhập Google thất bại.");
+                    }}
                   />
-                  Đăng nhập bằng Google
-                </button>
+                </div>
+
                 <button
                   type="button"
                   className={`${styles.socialButton} ${styles.facebookButton}`}
