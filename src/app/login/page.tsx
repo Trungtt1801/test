@@ -57,7 +57,6 @@ export default function LoginPage() {
         <aside>
           <div className={styles.formContainer}>
             <form onSubmit={handleSubmit}>
-              {/* ⚠️ Hiển thị lỗi nếu có */}
               {error && <div className={styles.errorMessage}>{error}</div>}
 
               <div className={styles.formGroup}>
