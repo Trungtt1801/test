@@ -32,6 +32,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
   loginWithGoogle: (token: string) => Promise<void>;
+  loginWithFacebook: (token: string) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
 }
@@ -114,6 +115,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       alert(error.message);
     }
   };
+const loginWithFacebook = async (accessToken: string) => {
+  try {
+    const res = await fetch("http://localhost:3000/user/login-facebook", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accessToken }),
+    });
+
+    const result = await res.json();
+    if (result.token) {
+      localStorage.setItem("token", result.token);
+    }
+    if (!res.ok) throw new Error(result.error || "Đăng nhập Facebook thất bại");
+
+    setCurrentUser(result.user);
+    localStorage.setItem("user", JSON.stringify(result.user));
+
+    alert("Đăng nhập Facebook thành công!");
+    router.push("/");
+  } catch (error: any) {
+    alert(error.message);
+  }
+};
 
   const logout = () => {
     setCurrentUser(null);
@@ -147,6 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           loginWithGoogle,
           logout,
           forgotPassword,
+          loginWithFacebook,
         }}
       >
         {children}

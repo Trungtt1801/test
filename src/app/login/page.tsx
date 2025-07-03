@@ -1,19 +1,39 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./login.module.css";
 import { useAuth } from "../context/authContext";
 import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
-  const { login, loginWithGoogle } = useAuth(); 
+  const { login, loginWithGoogle } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const [error, setError] = useState(""); 
+  const [error, setError] = useState("");
+
+  // Load Facebook SDK
+  useEffect(() => {
+    if (typeof window !== "undefined" && !window.FB) {
+      window.fbAsyncInit = function () {
+        window.FB.init({
+          appId: "736997475486550", 
+          cookie: true,
+          xfbml: true,
+          version: "v18.0",
+        });
+      };
+
+      const script = document.createElement("script");
+      script.src = "https://connect.facebook.net/en_US/sdk.js";
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -50,11 +70,47 @@ export default function LoginPage() {
       const token = credentialResponse.credential;
       if (!token) return;
 
-      await loginWithGoogle(token); 
+      await loginWithGoogle(token);
     } catch (err) {
       console.error("Google login error:", err);
       setError("Đăng nhập Google thất bại.");
     }
+  };
+
+  const handleFacebookLogin = () => {
+    if (!window.FB) return;
+
+    window.FB.login(
+      function (response: any) {
+        if (response.authResponse) {
+          const accessToken = response.authResponse.accessToken;
+          // Gửi accessToken tới backend của bạn tại /user/login-facebook
+          fetch("http://localhost:3000/user/login-facebook", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: accessToken }),
+          })
+            .then((res) => res.json())
+            .then((result) => {
+              if (result.token) {
+                localStorage.setItem("token", result.token);
+                localStorage.setItem("user", JSON.stringify(result.user));
+                alert("Đăng nhập Facebook thành công!");
+                window.location.href = "/";
+              } else {
+                throw new Error("Đăng nhập Facebook thất bại");
+              }
+            })
+            .catch((err) => {
+              console.error("Facebook login error:", err);
+              setError("Đăng nhập Facebook thất bại.");
+            });
+        } else {
+          setError("Đăng nhập Facebook bị huỷ hoặc thất bại.");
+        }
+      },
+      { scope: "email,public_profile" }
+    );
   };
 
   return (
@@ -130,6 +186,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   className={`${styles.socialButton} ${styles.facebookButton}`}
+                  onClick={handleFacebookLogin}
                 >
                   <img
                     src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
@@ -139,9 +196,7 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <div
-                style={{ marginTop: "10px", fontSize: "12px", color: "#333" }}
-              >
+              <div style={{ marginTop: "10px", fontSize: "12px", color: "#333" }}>
                 <a
                   href="/forgot-password"
                   style={{
@@ -166,9 +221,7 @@ export default function LoginPage() {
               </div>
 
               <a href="/" className={styles.backLink}>
-                <strong style={{ fontSize: "14px", marginRight: "10px" }}>
-                  ←
-                </strong>
+                <strong style={{ fontSize: "14px", marginRight: "10px" }}>←</strong>
                 Quay lại trang chủ
               </a>
             </form>
